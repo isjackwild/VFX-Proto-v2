@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>PC</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+	<script type="text/javascript" src="three.js"></script>
+	<script type="text/javascript" src="postprocessing/EffectComposer.js"></script>
+	<script type="text/javascript" src="postprocessing/RenderPass.js"></script>
+	<script type="text/javascript" src="postprocessing/FilmPass.js"></script>
+	<script type="text/javascript" src="postprocessing/MaskPass.js"></script>
+	<script type="text/javascript" src="postprocessing/ShaderPass.js"></script>
+	<script type="text/javascript" src="shaders/RGBShiftShader.js"></script>
+	<script type="text/javascript" src="shaders/CopyShader.js"></script>
+	<script type="text/javascript" src="StackBlur.js"></script>
+	<script type="text/javascript" src="site.js"></script>
+	
+	<script src="ogv.js"></script>
+	<script src="StreamFile.js"></script>
+	<script src="AudioFeeder.js"></script>
+	<script src="YCbCr.js"></script>
+	<script src="player.js"></script>
+</head>
+<body>
+
+
+<canvas id="three-cv"></canvas>
+<canvas id="mobile-vid-cv"></canvas>
+<canvas id="mask-cv" width="160" height="90"></canvas>
+<video id="video-texture" muted autoplay loop>
+	<source src="assets/vid-3.mp4" type="video/mp4">
+</video>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+@font-face {
+	font-family: 'EdwardianEF-Light';
+	font-weight: normal;
+	src: url('assets/fonts/EdwardianEF-Light.woff') format('woff');
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	padding: 0;
+	margin: 0;
+	font-family: 'EdwardianEF-Light';
+}
+
+canvas#three-cv {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+}
+
+canvas#mask-cv {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 160px;
+	height: 90px;
+	background: transparent;
+	border: 1px solid green;
+}
+
+canvas#mobile-vid-cv {
+	position: absolute;
+	top: 90px;
+	left: 0;
+	width: 160px;
+	height: 90px;
+	background: transparent;
+	border: 1px solid red;
+	/*display: none;*/
+}
+
+video {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: none;
+}
