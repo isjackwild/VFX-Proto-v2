@@ -218,7 +218,6 @@ function OgvJsPlayer(canvas) {
 			var delta = (getTimestamp() - start);
 			lastFrameDecodeTime += delta;
 			demuxingTime += delta;
-
 			if (!more) {
 				queueAudio();
 				if (stream) {
@@ -248,7 +247,9 @@ function OgvJsPlayer(canvas) {
 				// Have to process some more pages to find data. Continue the loop.
 				continue;
 			}
-		
+			
+			// THIS IS THE HACK TO MAKE IT AUTOPLAY!!!!
+			hasAudio = false;
 			if (hasAudio) {
 				// Drive on the audio clock!
 				var fudgeDelta = 0.1,
@@ -257,6 +258,10 @@ function OgvJsPlayer(canvas) {
 					readyForAudio = audioState.samplesQueued <= (audioFeeder.bufferSize * 2),
 					frameDelay = (frameEndTimestamp - audioState.playbackPosition) * 1000,
 					readyForFrame = (frameDelay <= fudgeDelta);
+
+					// THIS IS THE HACK TO MAKE IT AUTOPLAY!!!!
+					// readyForFrame = true;
+					// console.log(readyForAudio);
 				if (codec.audioReady && readyForAudio) {
 					var start = getTimestamp();
 					var ok = codec.decodeAudio();
@@ -283,7 +288,7 @@ function OgvJsPlayer(canvas) {
 						doDrawFrame();
 					} else {
 						// Bad packet or something.
-						console.log('Bad video packet or something');
+						// console.log('Bad video packet or something');
 					}
 					targetFrameTime = currentTime + 1000.0 / fps;
 				}
@@ -324,7 +329,7 @@ function OgvJsPlayer(canvas) {
 						targetFrameTime += 1000.0 / fps;
 						pingProcessing();
 					} else {
-						console.log('Bad video packet or something');
+						// console.log('Bad video packet or something');
 						pingProcessing(targetFrameTime - getTimestamp());
 					}
 				} else {
@@ -334,7 +339,7 @@ function OgvJsPlayer(canvas) {
 				return;
 			} else {
 				// Ok we're just waiting for more input.
-				console.log('Still waiting for headers...');
+				// console.log('Still waiting for headers...');
 			}
 		}
 	}
@@ -347,7 +352,7 @@ function OgvJsPlayer(canvas) {
 			// already scheduled
 			return;
 		}
-		//console.log('delaying for ' + delay);
+		// console.log('delaying for ' + delay);
 		//nextProcessingTimer = setTimeout(doProcessing, delay);
 		nextProcessingTimer = requestAnimationFrame(doProcessing);
 	}
@@ -429,6 +434,7 @@ function OgvJsPlayer(canvas) {
 	 * HTMLMediaElement load method
 	 */
 	this.load = function() {
+		// console.log('1');
 		if (stream) {
 			// already loaded.
 			return;

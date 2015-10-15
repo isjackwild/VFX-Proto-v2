@@ -31,17 +31,24 @@ canvas#mask-cv {
 	height: 90px;
 	background: transparent;
 	border: 1px solid green;
+	display: none;
 }
 
 canvas#mobile-vid-cv {
 	position: absolute;
 	top: 90px;
 	left: 0;
-	width: 160px;
-	height: 90px;
+	width: 480px;
+	height: 270px;
 	background: transparent;
 	border: 1px solid red;
-	/*display: none;*/
+	display: none;
+}
+
+
+.no-webgl canvas#mobile-vid-cv {
+	width: 160;
+	height: 90;
 }
 
 video {

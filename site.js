@@ -19,7 +19,7 @@ function lerp(x, t, y) {
 
 
 var threeCv, video, maskCv, maskCtx, mobileVid, mobileVidCv, mobileVidCtx,
-	renderer, scene, camera,
+	renderer, scene, camera, hasWebGL,
 	// geom, material, mesh, light, videoTexture,
 	geom, meshes = [], group, light, videoTexture, matteTexture,
 	composer, renderPass, effectCopy, rgbShift,
@@ -83,6 +83,8 @@ function init() {
 	maskCtx = maskCv.getContext('2d');
 	video = document.getElementById("video-texture");
 
+	hasWebGL = testWebGL();
+
 	if (w < 400) {
 		setupMobileVideo();
 	}
@@ -92,6 +94,23 @@ function init() {
 	setupFxComposer();
 
 	isInit = true;
+}
+
+
+function testWebGL() {
+	var canvas, ctx, supported;
+
+	try {
+		canvas = document.createElement("canvas");
+		ctx = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+		supported = ctx ? true : false;
+	} catch (e) {
+		console.warn('webgl not supported');
+	}
+	if (!supported) {
+		document.body.classList.add('no-webgl');
+	}
+	return supported;
 }
 
 function setupMobileVideo() {
@@ -105,13 +124,15 @@ function setupMobileVideo() {
 
 
 	mobileVid = new OgvJsPlayer(mobileVidCv);
-	mobileVid.src = "test.ogv";
-	mobileVid.muted = false;
+	mobileVid.src = hasWebGL ? "assets/texture-mobile-600w.ogv" : "assets/texture-mobile.ogv";
+	mobileVid.muted = true;
 	mobileVid.load();
 	// mobileVid.load();
-	mobileVid.onframecallback = function(){
+	// mobileVid.onframecallback = function(){
+	// }
+	setTimeout(function(){
 		mobileVid.play();
-	}
+	},10);
 	// console.log(mobileVid);
 }
 
@@ -126,21 +147,26 @@ function setupFxComposer() {
 		alpha: false
 	};
 
-	renderer = new THREE.WebGLRenderer(options);
+	if (hasWebGL) {
+		renderer = new THREE.WebGLRenderer(options);
+		renderPass = new THREE.RenderPass(scene, camera);
+		effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+		effectCopy.renderToScreen = true;
+		rgbShift = new THREE.ShaderPass(THREE.RGBShiftShader);
+		rgbShift.uniforms.angle.value = 10;
+		rgbShift.uniforms.amount.value = 0;
+		
+		composer = new THREE.EffectComposer(renderer);
+		composer.addPass(renderPass);
+		composer.addPass(rgbShift);
+		composer.addPass(effectCopy);
+	} else {
+		alert('fallback');
+		renderer = new THREE.CanvasRenderer(options);
+	}
+
 	renderer.setSize(w, h);
 	renderer.setClearColor( 0xffffff, 1);
-
-	renderPass = new THREE.RenderPass(scene, camera);
-	effectCopy = new THREE.ShaderPass(THREE.CopyShader);
-	effectCopy.renderToScreen = true;
-	rgbShift = new THREE.ShaderPass(THREE.RGBShiftShader);
-	rgbShift.uniforms.angle.value = 10;
-	rgbShift.uniforms.amount.value = 0;
-	
-	composer = new THREE.EffectComposer(renderer);
-	composer.addPass(renderPass);
-	composer.addPass(rgbShift);
-	composer.addPass(effectCopy);
 }
 
 function setupScene() {
@@ -280,39 +306,44 @@ function setCameraDist() {
 
 
 function addEventListeners() {
-	window.addEventListener('mousemove', onMouseMove, false);
-	window.addEventListener('mousewheel', onMouseWheel, false);
-	window.addEventListener('resize', onResize, false);
-
-	// only for table tab / mobile
-	if (w<400) {
-		mobileVidCv.addEventListener('click', function(){
-			console.log('click');
-			mobileVid.play();
-		});
+	if (hasWebGL) {
+		window.addEventListener('mousemove', onMouseMove, false);
+		window.addEventListener('mousewheel', onMouseWheel, false);
+		window.addEventListener('touchstart', onTouchStart, false);
+		window.addEventListener('touchmove', onTouchMove, false);
+		window.addEventListener('touchend', onTouchEnd, false);
 	}
+	window.addEventListener('resize', onResize, false);
 }
 
-function onMouseMove(e) {
+
+function onMouseMove(e, x, y) {
 	if (mouseDB) return;
 	mouseDB = true;
 
+	var multi = 2;
+	if (e) {
+		x = e.clientX;
+		y = e.clientY;
+		multi = 1;
+	}
+
 	if (mouse.prev.x) {
-		mouse.diff.x = Math.abs(e.clientX - mouse.prev.x);
-		mouse.diff.y = Math.abs(e.clientY - mouse.prev.y);
+		mouse.diff.x = Math.abs(x - mouse.prev.x);
+		mouse.diff.y = Math.abs(y - mouse.prev.y);
 		mouse.diff.total = Math.sqrt(mouse.diff.x*mouse.diff.x + mouse.diff.y*mouse.diff.y);
 		
-		opacityCounter.target+= mouse.diff.total;
-		rgbCounter.target+= mouse.diff.total;
-		maskCounter.target+= mouse.diff.total;
+		opacityCounter.target+= mouse.diff.total * multi;
+		rgbCounter.target+= mouse.diff.total * multi;
+		maskCounter.target+= mouse.diff.total * multi;
 	}
 
 	
 	mouse.prev.x = mouse.current.x;
 	mouse.prev.y = mouse.current.y;
 
-	mouse.current.x = e.clientX;
-	mouse.current.y = e.clientY;
+	mouse.current.x = x;
+	mouse.current.y = y;
 
 	
 	// camera.position.x = (e.clientX/100) - (w/100)/2;
@@ -321,6 +352,20 @@ function onMouseMove(e) {
 	// meshes[0].position.y = (e.clientY/1000) - (h/1000)/2;
 
 	// console.log(meshes[0].position.x);
+}
+
+function onTouchStart(e) {
+
+}
+
+function onTouchMove(e) {
+	e.preventDefault();
+	console.log(e.touches[0]);
+	onMouseMove(null, e.touches[0].clientX, e.touches[0].clientY);
+}
+
+function onTouchEnd(e) {
+
 }
 
 function onMouseWheel(e) {
@@ -456,7 +501,7 @@ function renderMobileVidCv() {
 	// 	mobileVid.currentTime += 1/60*delta;
 	// }
 	// mobileVidCtx.drawImage(mobileVid, 0, 0, mobileVidCv.width, mobileVidCv.height);
-	console.log(mobileVid.ended);
+	// console.log(mobileVid.ended);
 }
 
 function render() {
@@ -465,7 +510,11 @@ function render() {
 	}
 
 	// camera.lookAt(meshes[meshes.length-1].position);
-	composer.render(delta);
+	if (hasWebGL) {
+		composer.render(delta);
+	} else {
+		renderer.render(scene, camera);
+	}
 }
 
 
